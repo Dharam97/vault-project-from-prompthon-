@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Vault - Dynamo inspired distributed object storage system"
+    >
+
+    <title>Vault | Distributed Object Storage</title>
+
+    <style>
+
+        /* =========================================================
+           GLOBAL
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0b0f14;
+            --bg-sidebar: #10151c;
+            --bg-card: #131a22;
+            --bg-card-hover: #18212c;
+
+            --border: #26313d;
+
+            --text-main: #e6edf3;
+            --text-muted: #8b98a7;
+
+            --green: #35d07f;
+            --yellow: #e5b94f;
+            --red: #ef6461;
+            --blue: #4ea1ff;
+            --purple: #9b7cff;
+
+            --radius: 8px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--bg-main);
+            color: var(--text-main);
+
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+
+        /* =========================================================
+           APPLICATION LAYOUT
+        ========================================================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .sidebar {
+            width: 245px;
+
+            background: var(--bg-sidebar);
+
+            border-right: 1px solid var(--border);
+
+            padding: 22px 16px;
+
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 5px 10px 25px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+
+            border-radius: 8px;
+
+            background: #182331;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: var(--blue);
+
+            font-size: 18px;
+            font-weight: bold;
+
+            border: 1px solid var(--border);
+        }
+
+        .brand-text h1 {
+            font-size: 19px;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-text span {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+
+        /* =========================================================
+           NAVIGATION
+        ========================================================= */
+
+        .nav-title {
+            color: #647181;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.2px;
+
+            padding: 18px 10px 8px;
+        }
+
+        .nav-item {
+            width: 100%;
+
+            background: transparent;
+
+            border: none;
+
+            color: var(--text-muted);
+
+            padding: 11px 12px;
+
+            border-radius: 6px;
+
+            text-align: left;
+
+            cursor: pointer;
+
+            margin-bottom: 3px;
+
+            transition: 0.15s;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background: #192431;
+            color: var(--blue);
+        }
+
+
+        /* =========================================================
+           MAIN CONTENT
+        ========================================================= */
+
+        .main {
+            margin-left: 245px;
+
+            width: calc(100% - 245px);
+
+            min-height: 100vh;
+        }
+
+
+        /* =========================================================
+           TOP BAR
+        ========================================================= */
+
+        .topbar {
+            height: 64px;
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 28px;
+
+            background: rgba(11, 15, 20, 0.92);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 10;
+        }
+
+        .page-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: var(--text-muted);
+
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: var(--green);
+
+            box-shadow:
+                0 0 8px rgba(53, 208, 127, 0.6);
+        }
+
+
+        /* =========================================================
+           CONTENT
+        ========================================================= */
+
+        .content {
+            padding: 28px;
+            max-width: 1600px;
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+
+        /* =========================================================
+           METRIC CARDS
+        ========================================================= */
+
+        .metrics {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 14px;
+
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            padding: 18px;
+
+            transition: 0.15s;
+        }
+
+        .metric-card:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+
+            font-size: 11px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.8px;
+
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+
+            font-weight: 600;
+        }
+
+        .metric-sub {
+            color: var(--text-muted);
+
+            font-size: 11px;
+
+            margin-top: 6px;
+        }
+
+
+        /* =========================================================
+           GRID
+        ========================================================= */
+
+        .grid {
+            display: grid;
+
+            grid-template-columns:
+                2fr 1fr;
+
+            gap: 18px;
+
+            margin-bottom: 18px;
+        }
+
+
+        /* =========================================================
+           CARD
+        ========================================================= */
+
+        .card {
+            background: var(--bg-card);
+
+            border: 1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 15px 17px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h3 {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .card-header span {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .card-body {
+            padding: 17px;
+        }
+
+
+        /* =========================================================
+           N R W POLICY
+        ========================================================= */
+
+        .policy {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 10px;
+        }
+
+        .policy-box {
+            background: #0e141b;
+
+            border: 1px solid var(--border);
+
+            padding: 16px;
+
+            border-radius: 6px;
+
+            text-align: center;
+        }
+
+        .policy-box strong {
+            display: block;
+
+            font-size: 26px;
+
+            margin-bottom: 5px;
+        }
+
+        .policy-box span {
+            color: var(--text-muted);
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.7px;
+        }
+
+
+        /* =========================================================
+           NODE LIST
+        ========================================================= */
+
+        .node-list {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+        .node {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 11px;
+
+            background: #0e141b;
+
+            border: 1px solid var(--border);
+
+            border-radius: 6px;
+        }
+
+        .node-left {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+        .node-indicator {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+        }
+
+        .node-indicator.healthy {
+            background: var(--green);
+        }
+
+        .node-indicator.failed {
+            background: var(--red);
+        }
+
+        .node-name {
+            font-size: 12px;
+        }
+
+        .node-address {
+            color: var(--text-muted);
+
+            font-size: 10px;
+
+            margin-top: 2px;
+        }
+
+        .node-status {
+            font-size: 10px;
+
+            color: var(--green);
+
+            text-transform: uppercase;
+        }
+
+
+        /* =========================================================
+           STORAGE BAR
+        ========================================================= */
+
+        .storage {
+            margin-top: 20px;
+        }
+
+        .storage-top {
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-bottom: 7px;
+
+            font-size: 11px;
+        }
+
+        .storage-top span:last-child {
+            color: var(--text-muted);
+        }
+
+        .storage-bar {
+            width: 100%;
+
+            height: 7px;
+
+            background: #202934;
+
+            border-radius: 10px;
+
+            overflow: hidden;
+        }
+
+        .storage-fill {
+            height: 100%;
+
+            width: 38%;
+
+            background: var(--blue);
+
+            border-radius: 10px;
+        }
+
+
+        /* =========================================================
+           ACTIVITY
+        ========================================================= */
+
+        .activity {
+            display: flex;
+
+            flex-direction: column;
+        }
+
+        .event {
+            display: grid;
+
+            grid-template-columns:
+                75px 1fr 75px;
+
+            gap: 10px;
+
+            padding: 11px 0;
+
+            border-bottom: 1px solid #1c252e;
+
+            font-size: 11px;
+        }
+
+        .event:last-child {
+            border-bottom: none;
+        }
+
+        .event-time {
+            color: var(--text-muted);
+        }
+
+        .event-message {
+            color: var(--text-main);
+        }
+
+        .event-type {
+            text-align: right;
+
+            color: var(--blue);
+
+            text-transform: uppercase;
+
+            font-size: 9px;
+        }
+
+
+        /* =========================================================
+           BUTTONS
+        ========================================================= */
+
+        .btn {
+            border: 1px solid var(--border);
+
+            background: #18212b;
+
+            color: var(--text-main);
+
+            padding: 8px 12px;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+            font-size: 11px;
+        }
+
+        .btn:hover {
+            background: #202d3b;
+        }
+
+        .btn-primary {
+            background: #1d4d7e;
+
+            border-color: #28649f;
+
+            color: white;
+        }
+
+        .btn-danger {
+            background: #4c2024;
+
+            border-color: #7b3036;
+
+            color: #ffb6b6;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1000px) {
+
+            .sidebar {
+                width: 190px;
+            }
+
+            .main {
+                margin-left: 190px;
+
+                width: calc(100% - 190px);
+            }
+
+            .metrics {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+
+                width: 100%;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                V
+            </div>
+
+            <div class="brand-text">
+
+                <h1>Vault</h1>
+
+                <span>
+                    Distributed Storage
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="nav-title">
+            System
+        </div>
+
+        <button class="nav-item active">
+            Dashboard
+        </button>
+
+        <button class="nav-item">
+            Objects
+        </button>
+
+        <button class="nav-item">
+            Cluster
+        </button>
+
+        <button class="nav-item">
+            Replication
+        </button>
+
+
+        <div class="nav-title">
+            Operations
+        </div>
+
+        <button class="nav-item">
+            Integrity
+        </button>
+
+        <button class="nav-item">
+            Repair
+        </button>
+
+        <button class="nav-item">
+            Rebalance
+        </button>
+
+
+        <div class="nav-title">
+            Observability
+        </div>
+
+        <button class="nav-item">
+            Events
+        </button>
+
+        <button class="nav-item">
+            Settings
+        </button>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div class="page-title">
+                Cluster Dashboard
+            </div>
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                Cluster Operational
+
+            </div>
+
+        </header>
+
+
+
+        <!-- CONTENT -->
+
+        <section class="content">
+
+
+            <div class="section-header">
+
+                <h2>
+                    Distributed Storage Overview
+                </h2>
+
+                <p>
+                    Dynamo-inspired fault-tolerant object
+                    storage cluster
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 METRICS
+            ================================================== -->
+
+            <div class="metrics">
+
+
+                <div class="metric-card">
+
+                    <div class="metric-label">
+                        Storage Nodes
+                    </div>
+
+                    <div class="metric-value">
+                        6
+                    </div>
+
+                    <div class="metric-sub">
+                        6 healthy
+                    </div>
+
+                </div>
+
+
+                <div class="metric-card">
+
+                    <div class="metric-label">
+                        Objects
+                    </div>
+
+                    <div class="metric-value">
+                        1,284
+                    </div>
+
+                    <div class="metric-sub">
+                        distributed objects
+                    </div>
+
+                </div>
+
+
+                <div class="metric-card">
+
+                    <div class="metric-label">
+                        Replication Factor
+                    </div>
+
+                    <div class="metric-value">
+                        N = 3
+                    </div>
+
+                    <div class="metric-sub">
+                        three replicas per object
+                    </div>
+
+                </div>
+
+
+                <div class="metric-card">
+
+                    <div class="metric-label">
+                        Storage Used
+                    </div>
+
+                    <div class="metric-value">
+                        38%
+                    </div>
+
+                    <div class="metric-sub">
+                        cluster capacity
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 POLICY + NODES
+            ================================================== -->
+
+            <div class="grid">
+
+
+                <!-- POLICY -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            Consistency Policy
+                        </h3>
+
+                        <span>
+                            Dynamo-style quorum
+                        </span>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="policy">
+
+
+                            <div class="policy-box">
+
+                                <strong>
+                                    3
+                                </strong>
+
+                                <span>
+                                    Replication N
+                                </span>
+
+                            </div>
+
+
+                            <div class="policy-box">
+
+                                <strong>
+                                    1
+                                </strong>
+
+                                <span>
+                                    Read R
+                                </span>
+
+                            </div>
+
+
+                            <div class="policy-box">
+
+                                <strong>
+                                    2
+                                </strong>
+
+                                <span>
+                                    Write W
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="storage">
+
+                            <div class="storage-top">
+
+                                <span>
+                                    Cluster Storage
+                                </span>
+
+                                <span>
+                                    3.8 TB / 10 TB
+                                </span>
+
+                            </div>
+
+                            <div class="storage-bar">
+
+                                <div
+                                    class="storage-fill"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- NODES -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            Storage Nodes
+                        </h3>
+
+                        <span>
+                            6 / 6 healthy
+                        </span>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="node-list">
+
+
+                            <div class="node">
+
+                                <div class="node-left">
+
+                                    <span
+                                        class="node-indicator healthy"
+                                    ></span>
+
+                                    <div>
+
+                                        <div class="node-name">
+                                            node-01
+                                        </div>
+
+                                        <div class="node-address">
+                                            10.0.0.11
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <span class="node-status">
+                                    healthy
+                                </span>
+
+                            </div>
+
+
+
+                            <div class="node">
+
+                                <div class="node-left">
+
+                                    <span
+                                        class="node-indicator healthy"
+                                    ></span>
+
+                                    <div>
+
+                                        <div class="node-name">
+                                            node-02
+                                        </div>
+
+                                        <div class="node-address">
+                                            10.0.0.12
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <span class="node-status">
+                                    healthy
+                                </span>
+
+                            </div>
+
+
+
+                            <div class="node">
+
+                                <div class="node-left">
+
+                                    <span
+                                        class="node-indicator healthy"
+                                    ></span>
+
+                                    <div>
+
+                                        <div class="node-name">
+                                            node-03
+                                        </div>
+
+                                        <div class="node-address">
+                                            10.0.0.13
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <span class="node-status">
+                                    healthy
+                                </span>
+
+                            </div>
+
+
+
+                            <div class="node">
+
+                                <div class="node-left">
+
+                                    <span
+                                        class="node-indicator healthy"
+                                    ></span>
+
+                                    <div>
+
+                                        <div class="node-name">
+                                            node-04
+                                        </div>
+
+                                        <div class="node-address">
+                                            10.0.0.14
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <span class="node-status">
+                                    healthy
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EVENTS
+            ================================================== -->
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <h3>
+                        Recent Cluster Activity
+                    </h3>
+
+                    <span>
+                        Last operations
+                    </span>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="activity">
+
+
+                        <div class="event">
+
+                            <div class="event-time">
+                                02:14:32
+                            </div>
+
+                            <div class="event-message">
+                                Object user/avatar.jpg
+                                replicated to node-04
+                            </div>
+
+                            <div class="event-type">
+                                REPLICATE
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="event">
+
+                            <div class="event-time">
+                                02:13:51
+                            </div>
+
+                            <div class="event-message">
+                                Integrity verification completed
+                            </div>
+
+                            <div class="event-type">
+                                INTEGRITY
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="event">
+
+                            <div class="event-time">
+                                02:12:07
+                            </div>
+
+                            <div class="event-message">
+                                PUT object documents/report.pdf
+                            </div>
+
+                            <div class="event-type">
+                                WRITE
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="event">
+
+                            <div class="event-time">
+                                02:10:42
+                            </div>
+
+                            <div class="event-message">
+                                Node node-05 heartbeat received
+                            </div>
+
+                            <div class="event-type">
+                                HEARTBEAT
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="event">
+
+                            <div class="event-time">
+                                02:08:15
+                            </div>
+
+                            <div class="event-message">
+                                Replica repair completed
+                            </div>
+
+                            <div class="event-type">
+                                REPAIR
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+
+    /*
+     * =========================================================
+     * VAULT FRONTEND CONTROLLER
+     * =========================================================
+     *
+     * Part 1:
+     * Basic navigation.
+     *
+     * Later parts will connect this interface to the
+     * actual Vault backend API.
+     */
+
+
+    const navigationItems =
+        document.querySelectorAll(".nav-item");
+
+
+    navigationItems.forEach(
+        (item) => {
+
+            item.addEventListener(
+                "click",
+                () => {
+
+                    navigationItems.forEach(
+                        (nav) => {
+
+                            nav.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    item.classList.add(
+                        "active"
+                    );
+
+
+                    console.log(
+                        "Vault section:",
+                        item.textContent.trim()
+                    );
+
+                }
+            );
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>
